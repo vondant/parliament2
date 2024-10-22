@@ -164,7 +164,7 @@ if [[ "${run_manta}" == "True" ]]; then
     echo "Manta"
     mkdir -p /home/dnanexus/out/log_files/manta_logs/
 
-    timeout 6h runManta 1> /home/dnanexus/out/log_files/manta_logs/"${prefix}".manta.stdout.log 2> /home/dnanexus/out/log_files/manta_logs/"${prefix}".manta.stderr.log &
+    timeout 24h runManta 1> /home/dnanexus/out/log_files/manta_logs/"${prefix}".manta.stdout.log 2> /home/dnanexus/out/log_files/manta_logs/"${prefix}".manta.stderr.log &
 fi
 
 # PREPARE FOR BREAKDANCER
