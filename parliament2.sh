@@ -28,7 +28,7 @@ check_threads(){
     breakseq_processes=$(top -n 1 -b -d 10 | grep -c breakseq)
     delly_processes=$(top -n 1 -b -d 10 | grep -c delly)
     lumpy_processes=$(top -n 1 -b -d 10 | grep -c lumpy)
-    active_threads=$(python /getThreads.py "${breakdancer_threads}" "${cnvnator_threads}" "${sambamba_processes}" "${manta_processes}" "${breakseq_processes}" "${delly_processes}" "${lumpy_processes}")
+    active_threads=$(python2.7 /getThreads.py "${breakdancer_threads}" "${cnvnator_threads}" "${sambamba_processes}" "${manta_processes}" "${breakseq_processes}" "${delly_processes}" "${lumpy_processes}")
     
     while [[ $active_threads -ge $(nproc) ]]; do
         echo "Waiting for 60 seconds"
@@ -39,7 +39,7 @@ check_threads(){
         breakseq_processes=$(top -n 1 -b -d 10 | grep -c breakseq)
         delly_processes=$(top -n 1 -b -d 10 | grep -c delly)
         lumpy_processes=$(top -n 1 -b -d 10 | grep -c lumpy)
-        active_threads=$(python /getThreads.py "${breakdancer_threads}" "${cnvnator_threads}" "${sambamba_processes}" "${manta_processes}" "${breakseq_processes}" "${delly_processes}" "${lumpy_processes}")
+        active_threads=$(python2.7 /getThreads.py "${breakdancer_threads}" "${cnvnator_threads}" "${sambamba_processes}" "${manta_processes}" "${breakseq_processes}" "${delly_processes}" "${lumpy_processes}")
         sleep 60
     done
 }
@@ -72,7 +72,7 @@ else
     cp "${ref_index}" ref.fa.fai
 fi
 
-ref_genome=$(python /home/dnanexus/get_reference.py)
+ref_genome=$(python2.7 /home/dnanexus/get_reference.py)
 lumpy_exclude_string=""
 if [[ "${ref_genome}" == "b37" ]]; then
     lumpy_exclude_string="-x /home/dnanexus/b37.bed"
@@ -136,7 +136,7 @@ wait
 
 echo "Generate contigs"
 
-samtools view -H input.bam | python /getContigs.py "${filter_short_contigs}" > contigs
+samtools view -H input.bam | python2.7 /getContigs.py "${filter_short_contigs}" > contigs
 
 mkdir -p /home/dnanexus/out/log_files/
 
@@ -280,13 +280,13 @@ mkdir -p /home/dnanexus/out/sv_caller_results/
 (if [[ "${run_lumpy}" == "True" ]]; then
     echo "Convert Lumpy results to VCF format"
     ls -sh *.vcf
-    python /convertHeader.py "${prefix}" "${lumpy_merge_command}" | vcf-sort -c | uniq > lumpy.vcf
+    python2.7 /convertHeader.py "${prefix}" "${lumpy_merge_command}" | vcf-sort -c | uniq > lumpy.vcf
 
     if [[ -f lumpy.vcf ]]; then
         cp lumpy.vcf /home/dnanexus/out/sv_caller_results/"${prefix}".lumpy.vcf
 
-        python /vcf2bedpe.py -i lumpy.vcf -o lumpy.gff
-        python /Lumpy2merge.py lumpy.gff "${prefix}" 1.0
+        python2.7 /vcf2bedpe.py -i lumpy.vcf -o lumpy.gff
+        python2.7 /Lumpy2merge.py lumpy.gff "${prefix}" 1.0
     else
         echo "No outputs of Lumpy found. Continuing."
     fi
@@ -300,7 +300,7 @@ fi) &
         cp manta/results/variants/diploidSV.vcf.gz /home/dnanexus/out/sv_caller_results/"${prefix}".manta.diploidSV.vcf.gz
         mv manta/results/variants/diploidSV.vcf.gz .
         gunzip diploidSV.vcf.gz
-        python /Manta2merge.py 1.0 diploidSV.vcf "${prefix}"
+        python2.7 /Manta2merge.py 1.0 diploidSV.vcf "${prefix}"
 
         cp manta/results/stats/alignmentStatsSummary.txt /home/dnanexus/out/sv_caller_results/"${prefix}".manta.alignmentStatsSummary.txt
     fi
@@ -315,9 +315,9 @@ fi) &
     if [[ -f breakdancer.output ]]; then
         cp breakdancer.output /home/dnanexus/out/sv_caller_results/"${prefix}".breakdancer.ctx
 
-        python /BreakDancer2Merge.py 1.0 breakdancer.output "${prefix}"
+        python2.7 /BreakDancer2Merge.py 1.0 breakdancer.output "${prefix}"
 
-        python /convert_breakdancer_vcf.py < breakdancer.output > breakdancer.vcf
+        python2.7 /convert_breakdancer_vcf.py < breakdancer.output > breakdancer.vcf
         cp breakdancer.vcf /home/dnanexus/out/sv_caller_results/"${prefix}".breakdancer.vcf
     else
         echo "No outputs of Breakdancer found. Continuing."
@@ -369,7 +369,7 @@ fi) &
 
 (if [[ "${run_delly_deletion}" == "True" ]]; then 
     echo "Convert Delly deletion results to VCF format"
-    python /convertHeader.py "${prefix}" "${delly_deletion_concat}" | vcf-sort -c | uniq > delly.deletion.vcf
+    python2.7 /convertHeader.py "${prefix}" "${delly_deletion_concat}" | vcf-sort -c | uniq > delly.deletion.vcf
 
     if [[ -f delly.deletion.vcf ]]; then
         cp delly.deletion.vcf /home/dnanexus/out/sv_caller_results/"${prefix}".delly.deletion.vcf
@@ -380,7 +380,7 @@ fi) &
 
 (if [[ "${run_delly_inversion}" == "True" ]]; then
     echo "Convert Delly inversion results to VCF format"
-    python /convertHeader.py "${prefix}" "${delly_inversion_concat}" | vcf-sort -c | uniq > delly.inversion.vcf
+    python2.7 /convertHeader.py "${prefix}" "${delly_inversion_concat}" | vcf-sort -c | uniq > delly.inversion.vcf
 
     if [[ -f delly.inversion.vcf ]]; then
         cp delly.inversion.vcf /home/dnanexus/out/sv_caller_results/"${prefix}".delly.inversion.vcf
@@ -391,7 +391,7 @@ fi) &
 
 (if [[ "${run_delly_duplication}" == "True" ]]; then
     echo "Convert Delly duplication results to VCF format"
-    python /convertHeader.py "${prefix}" "${delly_duplication_concat}" | vcf-sort -c | uniq > delly.duplication.vcf
+    python2.7 /convertHeader.py "${prefix}" "${delly_duplication_concat}" | vcf-sort -c | uniq > delly.duplication.vcf
 
     if [[ -f delly.duplication.vcf ]]; then
         cp delly.duplication.vcf /home/dnanexus/out/sv_caller_results/"${prefix}".delly.duplication.vcf
@@ -402,7 +402,7 @@ fi) &
 
 (if [[ "${run_delly_insertion}" == "True" ]]; then
     echo "Convert Delly insertion results to VCF format"
-    python /convertHeader.py "${prefix}" "${delly_insertion_concat}" | vcf-sort -c | uniq > delly.insertion.vcf
+    python2.7 /convertHeader.py "${prefix}" "${delly_insertion_concat}" | vcf-sort -c | uniq > delly.insertion.vcf
 
     if [[ -f delly.insertion.vcf ]]; then
         cp delly.insertion.vcf /home/dnanexus/out/sv_caller_results/"${prefix}".delly.insertion.vcf
@@ -466,7 +466,7 @@ if [[ "${run_genotype_candidates}" == "True" ]]; then
         echo "Running SVTyper on CNVnator outputs"
         mkdir svtype_cnvnator
         if [[ -f cnvnator.vcf ]]; then
-            python /get_uncalled_cnvnator.py | python /add_ciend.py 1000 > cnvnator.ci.vcf < cnvnator.vcf
+            python2.7 /get_uncalled_cnvnator.py | python2.7 /add_ciend.py 1000 > cnvnator.ci.vcf < cnvnator.vcf
             bash /home/dnanexus/parallelize_svtyper.sh cnvnator.vcf svtype_cnvnator "${prefix}".cnvnator.svtyped.vcf input.bam
         else
             echo "No CNVnator VCF file found. Continuing."
@@ -522,7 +522,7 @@ if [[ "${run_genotype_candidates}" == "True" ]]; then
     # Prepare inputs for SURVIVOR
     echo "Preparing inputs for SURVIVOR"
     for item in *svtyped.vcf; do
-        python /adjust_svtyper_genotypes.py "${item}" > adjusted.vcf
+        python2.7 /adjust_svtyper_genotypes.py "${item}" > adjusted.vcf
         mv adjusted.vcf "${item}"
         echo "Adding ${item} to SURVIVOR inputs"
         echo "${item}" >> survivor_inputs
@@ -540,7 +540,7 @@ if [[ "${run_genotype_candidates}" == "True" ]]; then
     # Prepare SURVIVOR outputs for upload
     vcf-sort -c > survivor_sorted.vcf < survivor.output.vcf
     sed -i 's/SAMPLE/breakdancer/g' survivor_sorted.vcf
-    python /combine_combined.py survivor_sorted.vcf "${prefix}" survivor_inputs /all.phred.txt | python /correct_max_position.py > /home/dnanexus/out/"${prefix}".combined.genotyped.vcf
+    python2.7 /combine_combined.py survivor_sorted.vcf "${prefix}" survivor_inputs /all.phred.txt | python2.7 /correct_max_position.py > /home/dnanexus/out/"${prefix}".combined.genotyped.vcf
     cp survivor_sorted.vcf /home/dnanexus/out/"${prefix}".survivor_sorted.vcf
 
     # Run svviz
