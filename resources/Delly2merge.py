@@ -17,7 +17,7 @@ def Convert(fh):
 			pe = int(info.split(";PE=")[1].split(";")[0])
 			mapq = int(info.split("MAPQ=")[1].split(";")[0])
 			if(pe >= 6 and mapq >= 20):
-				if svtype == "TRA":
+				if svtype == ["TRA", "BND"]:
 					start = pos
 					outerEnd = pos + 200
 					outerStart = end - 200
