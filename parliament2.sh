@@ -169,6 +169,17 @@ if [[ "${run_manta}" == "True" ]]; then
     timeout 24h runManta 1> /home/dnanexus/out/log_files/manta_logs/"${prefix}".manta.stdout.log 2> /home/dnanexus/out/log_files/manta_logs/"${prefix}".manta.stderr.log &
 fi
 
+# Added Delly Translocations
+if [[ "${run_delly_translocation}" == "True" ]]; then
+    echo "Running Delly (translocations) on the entire BAM file"
+    mkdir -p /home/dnanexus/out/log_files/delly_translocation_logs/
+
+    timeout 24h delly -t TRA -o delly.translocation.vcf -g ref.fa input.bam \
+        1> /home/dnanexus/out/log_files/delly_translocation_logs/"${prefix}".delly_translocation.stdout.log \
+        2> /home/dnanexus/out/log_files/delly_translocation_logs/"${prefix}".delly_translocation.stderr.log &
+    delly_translocation_concat="delly.translocation.vcf"
+fi
+
 # PREPARE FOR BREAKDANCER
 if [[ "${run_breakdancer}" == "True" ]]; then
     timeout 2h /breakdancer/cpp/bam2cfg -o breakdancer.cfg input.bam
@@ -182,7 +193,6 @@ delly_deletion_concat=""
 delly_inversion_concat=""
 delly_duplication_concat=""
 delly_insertion_concat=""
-delly_translocation_concat=""
 lumpy_merge_command=""
 
 if [[ "${run_delly_deletion}" == "True" ]] || [[ "${run_delly_insertion}" == "True" ]] || [[ "${run_delly_inversion}" == "True" ]] || [[ "${run_delly_duplication}" == "True" ]] || [[ "${run_delly_translocation}" == "True" ]]; then
@@ -198,7 +208,6 @@ if [[ "${run_cnvnator}" == "True" ]] || [[ "${run_delly}" == "True" ]] || [[ "${
     mkdir -p /home/dnanexus/out/log_files/delly_duplication_logs/
     mkdir -p /home/dnanexus/out/log_files/delly_insertion_logs/
     mkdir -p /home/dnanexus/out/log_files/delly_inversion_logs/
-    mkdir -p /home/dnanexus/out/log_files/delly__logs/
     mkdir -p /home/dnanexus/out/log_files/lumpy_logs/
     mkdir -p /home/dnanexus/out/log_files/sambamba_logs/
 
@@ -251,15 +260,6 @@ if [[ "${run_cnvnator}" == "True" ]] || [[ "${run_delly}" == "True" ]] || [[ "${
                     echo "Running Delly (duplications) for contig ${contig}"
                     timeout 6h delly -t DUP -o "${count}".delly.duplication.vcf -g ref.fa chr."${count}".bam 1> /home/dnanexus/out/log_files/delly_duplication_logs/"${prefix}".delly_duplication.stdout.log 2> /home/dnanexus/out/log_files/delly_duplication_logs/"${prefix}".delly_duplication.stderr.log & 
                     delly_duplication_concat="${delly_duplication_concat} ${count}.delly.duplication.vcf"
-                fi
-    
-                check_threads
-    
-                # Add the Delly Translocation block here
-                if [[ "${run_delly_translocation}" == "True" ]]; then
-                    echo "Running Delly (translocations) for contig ${contig}"
-                    timeout 6h delly -t BND -o "${count}".delly.translocation.vcf -g ref.fa chr."${count}".bam 1> /home/dnanexus/out/log_files/delly_translocation_logs/"${prefix}".delly_translocation."${contig}".stdout.log 2> /home/dnanexus/out/log_files/delly_translocation_logs/"${prefix}".delly_translocation."${contig}".stderr.log &
-                    delly_translocation_concat="${delly_translocation_concat} ${count}.delly.translocation.vcf"
                 fi
     
                 check_threads
